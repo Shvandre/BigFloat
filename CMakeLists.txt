@@ -7,7 +7,7 @@ project(BigFloat
 set(CMAKE_CXX_STANDARD 17)
 
 #Just build the library target
-add_executable(BigFloat BigFloat.cpp BigFloat.h)
+add_library(BigFloat BigFloat.cpp BigFloat.h)
 
 #Test target
 Include(FetchContent)
