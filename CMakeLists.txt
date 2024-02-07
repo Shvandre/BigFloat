@@ -6,6 +6,9 @@ project(BigFloat
 
 set(CMAKE_CXX_STANDARD 17)
 
+#Just build the library target
+add_executable(BigFloat BigFloat.cpp BigFloat.h)
+
 #Test target
 Include(FetchContent)
 
@@ -22,5 +25,5 @@ target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
 set(CMAKE_CXX_FLAGS "-Ofast")
 
-#Main tagret
+#Calc Pi tagret
 add_executable(CalcPi main.cpp BigFloat.cpp BigFloat.h)
