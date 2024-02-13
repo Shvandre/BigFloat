@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.17)
 project(BigFloat
         VERSION 1.0.0
         DESCRIPTION "Library that implements fixed point numbers"
@@ -23,7 +23,7 @@ add_executable(tests tests.cpp BigFloat.cpp BigFloat.h)
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
 
-set(CMAKE_CXX_FLAGS "-Ofast")
+set(CMAKE_CXX_FLAGS "-Ofast -pthread")
 
 #Calc Pi tagret
-add_executable(CalcPi main.cpp BigFloat.cpp BigFloat.h)
+add_executable(CalcPi main.cpp BigFloat)
