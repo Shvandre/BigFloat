@@ -20,7 +20,7 @@ private:
     void divideByTwo();
 
 public:
-    void inverseSign();
+    BigFloat& inverseSign();
     friend BigFloat abs(const BigFloat &x);
     explicit BigFloat(const std::vector<int> &intPart, const std::vector<int> &fracPart, char sign_);
     explicit BigFloat(int x);
@@ -33,9 +33,12 @@ public:
     bool operator < (const BigFloat& other) const;
     bool operator == (const BigFloat& other) const;
     bool operator <= (const BigFloat& other) const;
+    bool operator != (const BigFloat& other) const;
+    bool operator > (const BigFloat& other) const;
     BigFloat& operator -();
     friend BigFloat operator*(const BigFloat &a, const BigFloat &b);
     friend BigFloat operator/(const BigFloat &a, const BigFloat &b);
+    friend std::ostream& operator << (std::ostream &in, BigFloat &x);
     friend void display(const BigFloat&x, size_t precision);
 
 };

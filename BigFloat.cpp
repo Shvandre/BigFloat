@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <cstring>
+#include <numeric>
 #include "BigFloat.h"
 
 namespace {
@@ -183,8 +184,9 @@ void BigFloat::divideByTwo() {
         fractionalPart[sizeOfFracPart - 1] %= base;
     }
 }
-void BigFloat::inverseSign() {
+BigFloat& BigFloat::inverseSign() {
     sign = 1 - sign;
+    return *this;
 }
 BigFloat abs(const BigFloat &x) {
     return BigFloat(x.integerPart, x.fractionalPart, 0);
@@ -261,12 +263,21 @@ BigFloat operator+(const BigFloat &a, const BigFloat &b) {
 }
 BigFloat operator-(const BigFloat &a, const BigFloat &b) {
     if(a.sign != b.sign) {
-        return a + b;
+        if(a.sign == 0) {
+            BigFloat newB = b;
+            newB.inverseSign();
+            return a + newB;
+        }
+        else if(b.sign == 0) {
+            BigFloat newA = a;
+            newA.inverseSign();
+            return (newA + b).inverseSign();
+        }
     }
     if(a.sign == 1 && b.sign == 1) {
         BigFloat newB = b;
         newB.inverseSign();
-        return newB - a;
+        return newB + a;
     }
     std::vector<int> A = a.fractionalPart;
     A.insert(A.end(), a.integerPart.begin(), a.integerPart.end());
@@ -309,25 +320,25 @@ bool BigFloat::operator < (const BigFloat& other) const
         return false;
     }
     if(integerPart.size() < other.integerPart.size()) {
-        return true;
+        return 1 - sign;
     }
     if(integerPart.size() > other.integerPart.size()) {
-        return false;
+        return sign;
     }
     for(int i = integerPart.size() - 1; i >= 0; --i) {
         if(integerPart[i] < other.integerPart[i]) {
-            return true;
+            return 1 - sign;
         }
         if(integerPart[i] > other.integerPart[i]) {
-            return false;
+            return sign;
         }
     }
     for(int i = sizeOfFracPart - 1; i >= 0; --i) {
         if(fractionalPart[i] < other.fractionalPart[i]) {
-            return true;
+            return 1 - sign;
         }
         if(fractionalPart[i] > other.fractionalPart[i]) {
-            return false;
+            return sign;
         }
     }
     return false;
@@ -352,6 +363,13 @@ bool BigFloat::operator == (const BigFloat& other) const
     }
     return sign == other.sign || integerPart.empty() && other.integerPart.empty();
 }
+
+bool BigFloat::operator!=(const BigFloat &other) const {
+    return !(*this == other);
+}
+bool BigFloat::operator>(const BigFloat &other) const {
+    return !(*this <= other);
+}
 BigFloat& BigFloat::operator -() {
     sign = 1 - sign;
     return *this;
@@ -361,6 +379,9 @@ BigFloat operator*(const BigFloat &a, const BigFloat &b) {
     A.insert(A.end(), a.integerPart.begin(), a.integerPart.end());
     std::vector<int> B = b.fractionalPart;
     B.insert(B.end(), b.integerPart.begin(), b.integerPart.end());
+    if(std::accumulate(A.begin(), A.end(), 0) == 0 || std::accumulate(B.begin(), B.end(), 0) == 0) {
+        return BigFloat("0.");
+    }
     std::vector<int> resVec = BigFloat::mult(A, B);
     int firstNonZero = resVec.size() - 1;
     for(; firstNonZero >= 0 && resVec[firstNonZero] == 0; --firstNonZero);
@@ -370,6 +391,13 @@ BigFloat operator*(const BigFloat &a, const BigFloat &b) {
     return res;
 }
 BigFloat operator/(const BigFloat &a, const BigFloat &b) {
+    if(std::accumulate(b.fractionalPart.begin(), b.fractionalPart.end(), 0) == 0 && std::accumulate(b.integerPart.begin(), b.integerPart.end(), 0) == 0) {
+            std::cerr << "ERROR! - Division by zero";
+            throw std::runtime_error("Division by zero");
+    }
+    if(std::accumulate(a.fractionalPart.begin(), a.fractionalPart.end(), 0) == 0 && std::accumulate(a.integerPart.begin(), a.integerPart.end(), 0) == 0) {
+        return BigFloat("0.");
+    }
     BigFloat L("0.");
     BigFloat R = a;
     BigFloat eps(std::vector<int>(1, 0), std::vector<int> (sizeOfFracPart, 0), 0);
@@ -386,27 +414,27 @@ BigFloat operator/(const BigFloat &a, const BigFloat &b) {
     }
     return R;
 }
-void display(const BigFloat&x, size_t precision) {
-    for(int i = x.integerPart.size() - 1; i >= 0; --i) {
-        std::cout << x.integerPart[i];
-    }
-    std::cout << '.';
-    for(int i = x.fractionalPart.size() - 1; i >= 0 && i >= x.fractionalPart.size() - std::min(precision, x.fractionalPart.size()); --i) {
-        std::cout << x.fractionalPart[i];
-    }
-    std::cout << '\n';
-}
 
 std::string BigFloat::toString(size_t precision) const {
     std::string res;
+    if(this->sign) {
+        res += '-';
+    }
     for(int i = this->integerPart.size() - 1; i >= 0; --i) {
-        res += static_cast<char>(this->integerPart[i]);
+        res += static_cast<char>('0' + this->integerPart[i]);
     }
     res += '.';
     for(int i = this->fractionalPart.size() - 1; i >= 0 && i >= this->fractionalPart.size() - std::min(precision, this->fractionalPart.size()); --i) {
-        res += static_cast<char>(this->fractionalPart[i]);
+        res += static_cast<char>('0' + this->fractionalPart[i]);
     }
     return res;
+}
+void display(const BigFloat &x, size_t precision) {
+    std::cout << x.toString(precision) << '\n';
+}
+std::ostream& operator<<(std::ostream &out, BigFloat &x) {
+    out << x.toString(sizeOfFracPart);
+    return out;
 }
 
 BigFloat operator""_bf(const char *s) {
