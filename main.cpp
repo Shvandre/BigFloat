@@ -1,5 +1,6 @@
 #include <chrono>
 #include <thread>
+#include <mutex>
 #include <iostream>
 #include "BigFloat.h"
 
@@ -8,11 +9,19 @@ void CalcPi(BigFloat &pi, const int k, const BigFloat &bs) {
     static BigFloat one = 1._bf;
     static BigFloat two = 2._bf;
     static BigFloat four = 4._bf;
-    BigFloat res = ((four / BigFloat(8*k+1)) -
-                    (two / BigFloat(8*k+4)) -
-                    (one / BigFloat(8*k+5)) -
-                    (one / BigFloat(8*k+6))) / bs;
+    static std::mutex m;
+    BigFloat base = bs;
+    BigFloat res = 0.0_bf;
+    for(int i = k; i < k + 5; ++i) {
+        res = res + ((four / BigFloat(8 * i + 1)) -
+                        (two / BigFloat(8 * i + 4)) -
+                        (one / BigFloat(8 * i + 5)) -
+                        (one / BigFloat(8 * i + 6))) / base;
+        base = base * BigFloat(16);
+    }
+    m.lock();
     pi = pi + res;
+    m.unlock();
 }
 
 int main(int argc, char**argv) {
@@ -22,10 +31,12 @@ int main(int argc, char**argv) {
     auto start = std::chrono::high_resolution_clock::now();
     BigFloat pi = 0._bf;
     BigFloat curBs = 1._bf;
-    std::vector<std::thread> threads(80);
+    //Let's use 16 threads to calculate pi
+    std::vector<std::thread> threads(16);
 
-    for (int k = 0; k < 80; k++) {
-        threads[k] = std::thread(CalcPi, std::ref(pi), k, curBs);
+    for (int k = 0; k <= 80; k++) {
+        if(k % 5 == 0)
+            threads[k/5] = std::thread(CalcPi, std::ref(pi), k, curBs);
         curBs = curBs * BigFloat(16);
     }
     for (auto &thread : threads)

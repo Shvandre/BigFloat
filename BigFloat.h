@@ -25,18 +25,19 @@ public:
     explicit BigFloat(const std::vector<int> &intPart, const std::vector<int> &fracPart, char sign_);
     explicit BigFloat(int x);
     explicit BigFloat(const char* x);
+    [[nodiscard]] std::string toString(size_t precision) const;
 
     friend BigFloat operator+(const BigFloat &a, const BigFloat &b);
     friend BigFloat operator-(const BigFloat &a, const BigFloat &b);
     bool operator >= (const BigFloat& other) const;
     bool operator < (const BigFloat& other) const;
     bool operator == (const BigFloat& other) const;
+    bool operator <= (const BigFloat& other) const;
     BigFloat& operator -();
     friend BigFloat operator*(const BigFloat &a, const BigFloat &b);
     friend BigFloat operator/(const BigFloat &a, const BigFloat &b);
-    friend void display(const BigFloat&x, int precision);
+    friend void display(const BigFloat&x, size_t precision);
+
 };
 
 BigFloat operator""_bf(const char *s);
-
-void CalcPi(BigFloat &pi, int k, const BigFloat &bs);
