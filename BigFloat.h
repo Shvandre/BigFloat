@@ -16,7 +16,7 @@ private:
     static std::vector<int> substract(const std::vector<int> &x, const std::vector<int> &y);
     void addToFracPart(const std::vector<int> &digits);
     void normalise();
-    static void divideByTwo(std::vector<int> &digits);
+    static void divideByTwo(std::vector<int> &digits, bool removeZeroes);
     void divideByTwo();
 
 public:
@@ -40,6 +40,7 @@ public:
     friend BigFloat operator/(const BigFloat &a, const BigFloat &b);
     friend std::ostream& operator << (std::ostream &in, BigFloat &x);
     friend void display(const BigFloat&x, size_t precision);
+    explicit operator double() const;
 
 };
 

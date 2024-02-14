@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include "BigFloat.h"
 #include "catch2/catch_session.hpp"
 #include "catch2/generators/catch_generators.hpp"
@@ -6,7 +7,7 @@
 #include <catch2/generators/catch_generators_adapters.hpp>
 #include <catch2/generators/catch_generators_random.hpp>
 
-TEST_CASE( "All", "[BigFloat public methods]" ) {
+TEST_CASE( "[BigFloat public methods]", "[All]" ) {
     BigFloat a = 1.96_bf;
     REQUIRE(a.toString(2) == "1.96");
     a.inverseSign();
@@ -15,11 +16,16 @@ TEST_CASE( "All", "[BigFloat public methods]" ) {
     REQUIRE(a.toString(2) == "-1.96");
 }
 
-TEST_CASE("All", "[BigFloat operators]") {
+TEST_CASE("[BigFloat operators]", "[All]") {
     SECTION("+ whole numbers") {
         int a = GENERATE(take(10,random(-100, 100)));
         int b = GENERATE(take(10,random(-100, 100)));
-        REQUIRE(BigFloat(a) + BigFloat(b) == BigFloat(a + b));
+        a = -43;
+        b = 43;
+        INFO(a);
+        INFO(b);
+        BigFloat res = BigFloat(a) + BigFloat(b);
+        REQUIRE(res == BigFloat(a + b));
     }
     SECTION("+ real numbers") {
         int a = GENERATE(take(5,random(-100, 100)));
@@ -28,15 +34,13 @@ TEST_CASE("All", "[BigFloat operators]") {
         int delB = GENERATE(10, 100, 1000, 1000);
         BigFloat x = BigFloat(a) / BigFloat(delA);
         BigFloat y = BigFloat(b) / BigFloat(delB);
-        REQUIRE(abs((x + y - BigFloat(a + b)) / BigFloat(delA * delB)) < BigFloat("0.000000001"));
+        int lcm = delA * delB / std::gcd(delA, delB);
+        BigFloat res = BigFloat(a * (lcm / delA) + b * (lcm / delB)) / BigFloat(lcm);
+        REQUIRE(abs(x + y - res) < BigFloat("0.000000001"));
     }
     SECTION("*") {
         int a = GENERATE(take(10,random(-100, 100)));
         int b = GENERATE(take(10,random(-100, 100)));
-        INFO(a);
-        INFO(b);
-        a = -60;
-        b = 0;
         REQUIRE(BigFloat(a) * BigFloat(b) == BigFloat(a * b));
     }
     SECTION("- whole numbers") {
@@ -46,7 +50,7 @@ TEST_CASE("All", "[BigFloat operators]") {
     }
 }
 
-TEST_CASE("All", "[BigFloat comparation operators]") {
+TEST_CASE("[BigFloat comparation operators]", "[All]") {
     SECTION("== and != operators") {
         int a = GENERATE(take(10,random(-100, 100)));
         REQUIRE(BigFloat(a) == BigFloat(a));
@@ -68,5 +72,4 @@ TEST_CASE("All", "[BigFloat comparation operators]") {
         }
     }
 }
-
 
