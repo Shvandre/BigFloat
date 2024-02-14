@@ -30,8 +30,8 @@ TEST_CASE("[BigFloat operators]", "[All]") {
     SECTION("+ real numbers") {
         int a = GENERATE(take(5,random(-100, 100)));
         int b = GENERATE(take(5,random(-100, 100)));
-        int delA = GENERATE(10, 100, 1000, 1000);
-        int delB = GENERATE(10, 100, 1000, 1000);
+        int delA = GENERATE(take(5,random(1, 100)));
+        int delB = GENERATE(take(5,random(1, 100)));
         BigFloat x = BigFloat(a) / BigFloat(delA);
         BigFloat y = BigFloat(b) / BigFloat(delB);
         int lcm = delA * delB / std::gcd(delA, delB);
