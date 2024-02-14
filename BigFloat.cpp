@@ -153,18 +153,26 @@ void BigFloat::normalise() {
         fractionalPart.resize(sizeOfFracPart);
     }
 }
-void BigFloat::divideByTwo(std::vector<int> &digits) {
+void BigFloat::divideByTwo(std::vector<int> &digits, bool remove_leading_zeroes) {
     //https://ru.wikipedia.org/wiki/%D0%94%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5_%D0%BD%D0%B0_%D0%B4%D0%B2%D0%B0
     std::vector<int> res;
+    int last_nonzero = 0;
     for(int i = 0; i < digits.size() - 1; ++i) {
         if(digits[i+1] % 2 == 0) {
             res.push_back(digits[i] / 2);
+            last_nonzero = digits[i] / 2 != 0 ? i : last_nonzero;
         }
         else{
             res.push_back(5 + digits[i] / 2);
+            last_nonzero = i;
         }
     }
     res.push_back(digits.back() / 2);
+    if(digits[digits.size() - 1] / 2 != 0) {
+        last_nonzero = digits.size() - 1;
+    }
+    if(remove_leading_zeroes)
+        res.resize(last_nonzero + 1);
     std::swap(digits, res);
 }
 void BigFloat::divideByTwo() {
@@ -174,8 +182,8 @@ void BigFloat::divideByTwo() {
         divByTwo = false;
 
     }
-    divideByTwo(integerPart);
-    divideByTwo(fractionalPart);
+    divideByTwo(integerPart, true);
+    divideByTwo(fractionalPart, false);
     if(!divByTwo) {
         fractionalPart[sizeOfFracPart - 1] += 5;
     }
@@ -251,7 +259,15 @@ BigFloat operator+(const BigFloat &a, const BigFloat &b) {
     if(a.sign == 1 && b.sign == 0) { //Отриц + полож
         BigFloat newA = a;
         newA.inverseSign();
-        return b - newA;
+        BigFloat res = b - newA;
+        if(b > newA) {
+            res.sign = 0;
+            return res;
+        }
+        else{
+            res.sign = 1;
+            return res;
+        }
     }
     std::vector<int> resInt = BigFloat::sum(a.integerPart, b.integerPart);
     std::vector<int> resFrac = BigFloat::sum(a.fractionalPart, b.fractionalPart);
@@ -361,7 +377,7 @@ bool BigFloat::operator == (const BigFloat& other) const
             return false;
         }
     }
-    return sign == other.sign || integerPart.empty() && other.integerPart.empty();
+    return sign == other.sign || integerPart == std::vector{0} && other.integerPart == std::vector{0};
 }
 
 bool BigFloat::operator!=(const BigFloat &other) const {
@@ -390,18 +406,26 @@ BigFloat operator*(const BigFloat &a, const BigFloat &b) {
                  a.sign ^ b.sign);
     return res;
 }
-BigFloat operator/(const BigFloat &a, const BigFloat &b) {
-    if(std::accumulate(b.fractionalPart.begin(), b.fractionalPart.end(), 0) == 0 && std::accumulate(b.integerPart.begin(), b.integerPart.end(), 0) == 0) {
+BigFloat operator/(const BigFloat &x, const BigFloat &y) {
+    if(std::accumulate(y.fractionalPart.begin(), y.fractionalPart.end(), 0) == 0 && std::accumulate(y.integerPart.begin(), y.integerPart.end(), 0) == 0) {
             std::cerr << "ERROR! - Division by zero";
             throw std::runtime_error("Division by zero");
     }
-    if(std::accumulate(a.fractionalPart.begin(), a.fractionalPart.end(), 0) == 0 && std::accumulate(a.integerPart.begin(), a.integerPart.end(), 0) == 0) {
+    if(std::accumulate(x.fractionalPart.begin(), x.fractionalPart.end(), 0) == 0 && std::accumulate(x.integerPart.begin(), x.integerPart.end(), 0) == 0) {
         return BigFloat("0.");
+    }
+    BigFloat a = x;
+    BigFloat b = y;
+    if(a.sign == 1) {
+        a.inverseSign();
+    }
+    if(b.sign == 1) {
+        b.inverseSign();
     }
     BigFloat L("0.");
     BigFloat R = a;
     BigFloat eps(std::vector<int>(1, 0), std::vector<int> (sizeOfFracPart, 0), 0);
-    static_assert(sizeOfFracPart >= 103, "sizeOfFracPart must be at least 103");
+    static_assert(sizeOfFracPart >= 103, "sizeOfFracPart must be at least 103"); //103 is a magic precision for 100-digit precise PI calculation
     eps.fractionalPart[sizeOfFracPart - 103] = 1;
     while (R - L >= eps) {
         BigFloat M = (L + R);
@@ -412,6 +436,7 @@ BigFloat operator/(const BigFloat &a, const BigFloat &b) {
             R = M;
         }
     }
+    R.sign = x.sign ^ y.sign;
     return R;
 }
 
@@ -435,6 +460,10 @@ void display(const BigFloat &x, size_t precision) {
 std::ostream& operator<<(std::ostream &out, BigFloat &x) {
     out << x.toString(sizeOfFracPart);
     return out;
+}
+
+BigFloat::operator double() const {
+    return std::stod(toString(10));
 }
 
 BigFloat operator""_bf(const char *s) {
