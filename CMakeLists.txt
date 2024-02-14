@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.11)
 project(BigFloat
         VERSION 1.0.0
         DESCRIPTION "Library that implements fixed point numbers"
