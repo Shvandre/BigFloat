@@ -27,7 +27,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(tests tests.cpp BigFloat.cpp BigFloat.h)
+add_executable(tests tests.cpp BigFloat)
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
 #Calc Pi tagret
