@@ -17,18 +17,21 @@ endif()
 #Just build the library target
 add_library(BigFloat BigFloat.cpp BigFloat.h)
 
-#Test target
-Include(FetchContent)
+option(TESTS_ENABLE "Enable tests" ON)
+if (TESTS_ENABLE)
+    #Test target
+    Include(FetchContent)
 
-FetchContent_Declare(
-        Catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG        v3.4.0 # or a later release
-)
-FetchContent_MakeAvailable(Catch2)
+    FetchContent_Declare(
+            Catch2
+            GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+            GIT_TAG        v3.4.0 # or a later release
+    )
+    FetchContent_MakeAvailable(Catch2)
 
-add_executable(tests tests.cpp BigFloat)
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+    add_executable(tests tests.cpp BigFloat)
+    target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+endif()
 
 #Calc Pi tagret
 add_executable(CalcPi main.cpp BigFloat)

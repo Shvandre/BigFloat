@@ -20,10 +20,6 @@ TEST_CASE("[BigFloat operators]", "[All]") {
     SECTION("+ whole numbers") {
         int a = GENERATE(take(10,random(-100, 100)));
         int b = GENERATE(take(10,random(-100, 100)));
-        a = -43;
-        b = 43;
-        INFO(a);
-        INFO(b);
         BigFloat res = BigFloat(a) + BigFloat(b);
         REQUIRE(res == BigFloat(a + b));
     }
