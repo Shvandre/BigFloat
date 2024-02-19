@@ -5,7 +5,9 @@ class BigFloat {
 private:
     std::vector<int> integerPart, fractionalPart;
     char sign;
-
+    //Must be a power of 2
+    static const int sizeOfFracPart = 128;
+    static const int base = 10;
     void addToIntPart(const std::vector<int> &digits);
     static void extend_vec(std::vector<int>& v, size_t len);
     static std::vector<int> naive_mul(const std::vector<int>& x, const std::vector<int>& y);
@@ -41,7 +43,6 @@ public:
     friend std::ostream& operator << (std::ostream &in, BigFloat &x);
     friend void display(const BigFloat&x, size_t precision);
     explicit operator double() const;
-
 };
 
 BigFloat operator""_bf(const char *s);

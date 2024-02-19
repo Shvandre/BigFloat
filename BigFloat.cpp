@@ -5,10 +5,6 @@
 #include <numeric>
 #include "BigFloat.h"
 
-namespace {
-    const int sizeOfFracPart = 128; //Must be a power of 2 because of Karatsuba algorithm
-    const int base = 10;
-}
 
 void BigFloat::addToIntPart(const std::vector<int> &digits) {
     int carry = 0;
@@ -148,9 +144,9 @@ void BigFloat::addToFracPart(const std::vector<int> &digits) {
     if(carry) fractionalPart.push_back(carry);
 }
 void BigFloat::normalise() {
-    if(fractionalPart.size() > sizeOfFracPart) {
-        addToIntPart(std::vector<int>(fractionalPart.begin() + sizeOfFracPart, fractionalPart.end()));
-        fractionalPart.resize(sizeOfFracPart);
+    if(fractionalPart.size() > BigFloat::sizeOfFracPart) {
+        addToIntPart(std::vector<int>(fractionalPart.begin() + BigFloat::sizeOfFracPart, fractionalPart.end()));
+        fractionalPart.resize(BigFloat::sizeOfFracPart);
     }
 }
 void BigFloat::divideByTwo(std::vector<int> &digits, bool remove_leading_zeroes) {
@@ -185,11 +181,11 @@ void BigFloat::divideByTwo() {
     divideByTwo(integerPart, true);
     divideByTwo(fractionalPart, false);
     if(!divByTwo) {
-        fractionalPart[sizeOfFracPart - 1] += 5;
+        fractionalPart[BigFloat::sizeOfFracPart - 1] += 5;
     }
-    if(fractionalPart[sizeOfFracPart - 1] >= base) {
-        addToIntPart(std::vector<int>(1, fractionalPart[sizeOfFracPart - 1] / base));
-        fractionalPart[sizeOfFracPart - 1] %= base;
+    if(fractionalPart[BigFloat::sizeOfFracPart - 1] >= base) {
+        addToIntPart(std::vector<int>(1, fractionalPart[BigFloat::sizeOfFracPart - 1] / base));
+        fractionalPart[BigFloat::sizeOfFracPart - 1] %= base;
     }
 }
 BigFloat& BigFloat::inverseSign() {
@@ -199,7 +195,7 @@ BigFloat& BigFloat::inverseSign() {
 BigFloat abs(const BigFloat &x) {
     return BigFloat(x.integerPart, x.fractionalPart, 0);
 }
-BigFloat::BigFloat(const std::vector<int> &intPart, const std::vector<int> &fracPart, char sign_) : integerPart(intPart), fractionalPart(fracPart), sign(sign_) {
+BigFloat::BigFloat(const std::vector<int> &intPart, const std::vector<int> &fracPart, char sign_) : integerPart(intPart), fractionalPart(fracPart), sign(sign_){
     normalise();
 }
 BigFloat::BigFloat(int x) {
@@ -217,7 +213,7 @@ BigFloat::BigFloat(int x) {
         integerPart.push_back(x % base);
         x /= base;
     }
-    fractionalPart = std::vector<int> (sizeOfFracPart, 0);
+    fractionalPart = std::vector<int> (BigFloat::sizeOfFracPart, 0);
 
 }
 BigFloat::BigFloat(const char* x) {
@@ -235,7 +231,7 @@ BigFloat::BigFloat(const char* x) {
     bool meetDot = false;
     int digitsCnt = n - (strchr(x, '.') - x);
     digitsFrac.reserve(digitsCnt);
-    for(int i = 0; i <= sizeOfFracPart - digitsCnt; ++i) digitsFrac.push_back(0);
+    for(int i = 0; i <= BigFloat::sizeOfFracPart - digitsCnt; ++i) digitsFrac.push_back(0);
     for(int i = n - 1; i >= 0; --i) {
         if(s[i] == '.') {
             meetDot = true;
@@ -271,9 +267,9 @@ BigFloat operator+(const BigFloat &a, const BigFloat &b) {
     }
     std::vector<int> resInt = BigFloat::sum(a.integerPart, b.integerPart);
     std::vector<int> resFrac = BigFloat::sum(a.fractionalPart, b.fractionalPart);
-    if(resFrac.size() > sizeOfFracPart) {
-        resInt = BigFloat::sum(resInt, std::vector<int>(resFrac.begin() + sizeOfFracPart, resFrac.end()));
-        resFrac.resize(sizeOfFracPart);
+    if(resFrac.size() > BigFloat::sizeOfFracPart) {
+        resInt = BigFloat::sum(resInt, std::vector<int>(resFrac.begin() + BigFloat::sizeOfFracPart, resFrac.end()));
+        resFrac.resize(BigFloat::sizeOfFracPart);
     }
     return BigFloat(resInt, resFrac, a.sign);
 }
@@ -305,16 +301,16 @@ BigFloat operator-(const BigFloat &a, const BigFloat &b) {
         resVec = BigFloat::substract(A, B);
         int zeroesCnt = resVec.size() - 1;
         for(; zeroesCnt >= 0 && resVec[zeroesCnt] == 0; --zeroesCnt);
-        return BigFloat(std::vector<int> (resVec.begin() + sizeOfFracPart, resVec.begin() + std::max(sizeOfFracPart + 1, zeroesCnt + 1)),
-                        std::vector<int> (resVec.begin(), resVec.begin() + sizeOfFracPart),
+        return BigFloat(std::vector<int> (resVec.begin() + BigFloat::sizeOfFracPart, resVec.begin() + std::max(BigFloat::sizeOfFracPart + 1, zeroesCnt + 1)),
+                        std::vector<int> (resVec.begin(), resVec.begin() + BigFloat::sizeOfFracPart),
                         1 - a.sign);
     }
     else {
         resVec = BigFloat::substract(A, B);
         int zeroesCnt = resVec.size() - 1;
         for(; zeroesCnt >= 0 && resVec[zeroesCnt] == 0; --zeroesCnt);
-        return BigFloat(std::vector<int> (resVec.begin() + sizeOfFracPart, resVec.begin() + std::max(sizeOfFracPart + 1, zeroesCnt + 1)),
-                        std::vector<int> (resVec.begin(), resVec.begin() + sizeOfFracPart),
+        return BigFloat(std::vector<int> (resVec.begin() + BigFloat::sizeOfFracPart, resVec.begin() + std::max(BigFloat::sizeOfFracPart + 1, zeroesCnt + 1)),
+                        std::vector<int> (resVec.begin(), resVec.begin() + BigFloat::sizeOfFracPart),
                         a.sign);
     }
 
@@ -349,7 +345,7 @@ bool BigFloat::operator < (const BigFloat& other) const
             return sign;
         }
     }
-    for(int i = sizeOfFracPart - 1; i >= 0; --i) {
+    for(int i = BigFloat::sizeOfFracPart - 1; i >= 0; --i) {
         if(fractionalPart[i] < other.fractionalPart[i]) {
             return 1 - sign;
         }
@@ -361,14 +357,14 @@ bool BigFloat::operator < (const BigFloat& other) const
 }
 bool BigFloat::operator == (const BigFloat& other) const
 {
-    for(int i = 0; i < sizeOfFracPart; ++i) {
+    for(int i = 0; i < BigFloat::sizeOfFracPart; ++i) {
         if(fractionalPart[i] != other.fractionalPart[i]) {
             return false;
         }
     }
     if(integerPart.back() == 0  && integerPart.size() > 1 || other.integerPart.back() == 0 && other.integerPart.size() > 1) {
         std::cerr << "ERROR! - Leading zeroes";
-        std::cerr << this->toString(sizeOfFracPart) << ' ' << other.toString(sizeOfFracPart) << '\n';
+        std::cerr << this->toString(BigFloat::sizeOfFracPart) << ' ' << other.toString(BigFloat::sizeOfFracPart) << '\n';
     }
     if(integerPart.size() != other.integerPart.size())
         return false;
@@ -401,15 +397,15 @@ BigFloat operator*(const BigFloat &a, const BigFloat &b) {
     std::vector<int> resVec = BigFloat::mult(A, B);
     int firstNonZero = resVec.size() - 1;
     for(; firstNonZero >= 0 && resVec[firstNonZero] == 0; --firstNonZero);
-    BigFloat res(std::vector<int>(resVec.begin() + 2 * sizeOfFracPart, resVec.begin() + std::max(2 * sizeOfFracPart + 1, firstNonZero + 1)),
-                 std::vector<int>(resVec.begin() + sizeOfFracPart, resVec.begin() + 2 * sizeOfFracPart),
+    BigFloat res(std::vector<int>(resVec.begin() + 2 * BigFloat::sizeOfFracPart, resVec.begin() + std::max(2 * BigFloat::sizeOfFracPart + 1, firstNonZero + 1)),
+                 std::vector<int>(resVec.begin() + BigFloat::sizeOfFracPart, resVec.begin() + 2 * BigFloat::sizeOfFracPart),
                  a.sign ^ b.sign);
     return res;
 }
 BigFloat operator/(const BigFloat &x, const BigFloat &y) {
     if(std::accumulate(y.fractionalPart.begin(), y.fractionalPart.end(), 0) == 0 && std::accumulate(y.integerPart.begin(), y.integerPart.end(), 0) == 0) {
-            std::cerr << "ERROR! - Division by zero";
-            throw std::runtime_error("Division by zero");
+        std::cerr << "ERROR! - Division by zero";
+        throw std::runtime_error("Division by zero");
     }
     if(std::accumulate(x.fractionalPart.begin(), x.fractionalPart.end(), 0) == 0 && std::accumulate(x.integerPart.begin(), x.integerPart.end(), 0) == 0) {
         return BigFloat("0.");
@@ -424,9 +420,10 @@ BigFloat operator/(const BigFloat &x, const BigFloat &y) {
     }
     BigFloat L("0.");
     BigFloat R = a;
-    BigFloat eps(std::vector<int>(1, 0), std::vector<int> (sizeOfFracPart, 0), 0);
-    static_assert(sizeOfFracPart >= 103, "sizeOfFracPart must be at least 103"); //103 is a magic precision for 100-digit precise PI calculation
-    eps.fractionalPart[sizeOfFracPart - 103] = 1;
+    BigFloat eps(std::vector<int>(1, 0), std::vector<int> (BigFloat::sizeOfFracPart, 0), 0);
+    static_assert(BigFloat::sizeOfFracPart >= 11, "BigFloat::sizeOfFracPart must be at least 11"); //103 is a magic precision for 100-digit precise PI calculation
+    //Precision (number a bit bigger than 1, e.x. 20)
+    eps.fractionalPart[2] = 1;
     while (R - L >= eps) {
         BigFloat M = (L + R);
         M.divideByTwo();
@@ -458,7 +455,7 @@ void display(const BigFloat &x, size_t precision) {
     std::cout << x.toString(precision) << '\n';
 }
 std::ostream& operator<<(std::ostream &out, BigFloat &x) {
-    out << x.toString(sizeOfFracPart);
+    out << x.toString(BigFloat::sizeOfFracPart);
     return out;
 }
 
