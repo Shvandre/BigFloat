@@ -5,7 +5,9 @@ class BigFloat {
 private:
     std::vector<int> integerPart, fractionalPart;
     char sign;
-
+    //Must be a power of 2 so Karatsube works correctly
+    static const int sizeOfFracPart = 256;
+    static const int base = 10;
     void addToIntPart(const std::vector<int> &digits);
     static void extend_vec(std::vector<int>& v, size_t len);
     static std::vector<int> naive_mul(const std::vector<int>& x, const std::vector<int>& y);
